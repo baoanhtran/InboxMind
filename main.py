@@ -35,7 +35,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max", "-m",
         type=int,
-        default=int(os.environ.get("GMAIL_MAX_EMAILS", "10")),  # fetches 10 by default,
+        default=int(os.environ.get("GMAIL_MAX_EMAILS", "10")),  # fetches 10 by default
         help="Maximum number of emails to fetch (default: 10)",
     )
     parser.add_argument(
@@ -45,8 +45,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--thread-id",
-        default="inboxmind-default",
-        help="LangGraph thread ID for checkpoint persistence",
+        default=None,
+        help="LangGraph thread ID for checkpoint persistence (auto-generated per run by default)",
     )
     return parser.parse_args()
 
@@ -158,7 +158,13 @@ def main() -> None:
         "processing_complete": False,
     }
 
-    config = {"configurable": {"thread_id": args.thread_id}}
+    # Generate a unique thread ID per run by default so stale checkpoint
+    # state from previous runs never bleeds into a new one.
+    # Pass --thread-id explicitly only if you want to resume a specific run.
+    import uuid as _uuid
+    thread_id = args.thread_id or f"run-{_uuid.uuid4().hex[:12]}"
+    config = {"configurable": {"thread_id": thread_id}}
+    print(f"[main] Thread ID: {thread_id}")
 
     if args.no_hitl:
         run_auto(graph, initial_state, config)
