@@ -1,0 +1,47 @@
+# Environment variables & secrets
+.env
+.env.*
+
+# Google OAuth credentials & tokens
+credentials.json
+token.json
+
+# Database / state
+*.db
+*.sqlite
+*.sqlite3
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/

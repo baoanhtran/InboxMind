@@ -1,0 +1,27 @@
+# Core LangChain + LangGraph
+langchain>=1.0.0
+langgraph>=1.0.0
+langchain-openai>=0.3.0
+langchain-google-community>=2.0.0
+langchain-core>=1.0.0
+
+# Google APIs
+google-api-python-client>=2.100.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
+
+# Attachment processing
+pymupdf>=1.23.0          # PDF extraction
+openpyxl>=3.1.0          # Excel extraction
+pillow>=10.0.0           # Image handling
+
+# Persistence
+langgraph-checkpoint-sqlite>=1.0.0
+
+# API server
+fastapi>=0.110.0
+uvicorn>=0.29.0
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
