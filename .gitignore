@@ -41,6 +41,9 @@ Thumbs.db
 # Logs
 *.log
 
+# Generated reports
+report.md
+
 # Test / coverage
 .pytest_cache/
 .coverage
