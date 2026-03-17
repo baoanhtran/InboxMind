@@ -12,7 +12,7 @@ Graph structure:
                         ├─▶ reply_drafter         ├─▶ result_aggregator
                         └─▶ summarizer ───────────┘
                                                        └─▶ human_review
-                                                             ├─▶ [approved] ─▶ report_writer ─▶ END
+                                                             ├─▶ [approved] ─▶ apply_gmail_actions ─▶ report_writer ─▶ END
                                                              └─▶ [retry]    ─▶ triage_classifier (loop)
 """
 
@@ -33,6 +33,7 @@ from agent.nodes import (
     summarizer_node,
     result_aggregator_node,
     human_review_node,
+    apply_gmail_actions_node,
     report_writer_node,
 )
 
@@ -67,7 +68,7 @@ def route_after_review(state: InboxMindState) -> str:
         print(f"[router] Human rejected — retry #{retry_count}. Re-running triage.")
         return "triage_classifier"
 
-    return "report_writer"
+    return "apply_gmail_actions"
 
 
 # ---------------------------------------------------------------------------
@@ -95,6 +96,7 @@ def build_graph(checkpointer=None) -> CompiledStateGraph:
     builder.add_node("summarizer",             summarizer_node)
     builder.add_node("result_aggregator",      result_aggregator_node)
     builder.add_node("human_review",           human_review_node)
+    builder.add_node("apply_gmail_actions",    apply_gmail_actions_node)
     builder.add_node("report_writer",          report_writer_node)
 
     # ── Fixed edges ──────────────────────────────────────────────────────────
@@ -125,12 +127,13 @@ def build_graph(checkpointer=None) -> CompiledStateGraph:
         "human_review",
         route_after_review,
         {
-            "report_writer":   "report_writer",
-            "triage_classifier": "triage_classifier",
+            "apply_gmail_actions": "apply_gmail_actions",
+            "triage_classifier":   "triage_classifier",
         },
     )
 
-    # Report writer → end
+    # Gmail actions → report writer → end
+    builder.add_edge("apply_gmail_actions", "report_writer")
     builder.add_edge("report_writer", END)
 
     # ── Compile ──────────────────────────────────────────────────────────────

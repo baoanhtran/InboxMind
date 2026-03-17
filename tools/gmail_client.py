@@ -217,3 +217,57 @@ def create_draft(service, to: str, subject: str, body: str) -> str:
         .execute()
     )
     return draft["id"]
+
+
+# ---------------------------------------------------------------------------
+# Label management & mark-as-read
+# ---------------------------------------------------------------------------
+
+_label_cache: dict[str, str] = {}
+
+
+def ensure_label_exists(service, label_name: str) -> str:
+    """
+    Return the Gmail label ID for *label_name*, creating the label if it
+    does not already exist.  Results are cached for the process lifetime.
+    """
+    if label_name in _label_cache:
+        return _label_cache[label_name]
+
+    results = service.users().labels().list(userId="me").execute()
+    for label in results.get("labels", []):
+        if label["name"].lower() == label_name.lower():
+            _label_cache[label_name] = label["id"]
+            return label["id"]
+
+    # Label doesn't exist yet — create it
+    created = (
+        service.users()
+        .labels()
+        .create(
+            userId="me",
+            body={
+                "name": label_name,
+                "labelListVisibility": "labelShow",
+                "messageListVisibility": "show",
+            },
+        )
+        .execute()
+    )
+    _label_cache[label_name] = created["id"]
+    return created["id"]
+
+
+def label_and_mark_read(service, msg_id: str, label_id: str) -> None:
+    """
+    Apply a label and mark a message as read in a single API call.
+    Removing the ``UNREAD`` label is how Gmail marks a message as read.
+    """
+    service.users().messages().modify(
+        userId="me",
+        id=msg_id,
+        body={
+            "addLabelIds": [label_id],
+            "removeLabelIds": ["UNREAD"],
+        },
+    ).execute()

@@ -26,12 +26,15 @@ from agent.state import (
     AttachmentResult,
     DraftResult,
     EmailSummary,
+    GmailActionResult,
 )
 from tools.gmail_client import (
     build_gmail_service,
     fetch_emails,
     download_attachment,
     create_draft,
+    ensure_label_exists,
+    label_and_mark_read,
 )
 from tools.attachment import extract_attachment_text
 from utils.prompts import (
@@ -436,3 +439,60 @@ def report_writer_node(state: InboxMindState) -> dict:
 
     print(f"[report_writer] Report saved to {output_path}")
     return {"final_report": report, "processing_complete": True}
+
+
+# ---------------------------------------------------------------------------
+# Node 7 — apply_gmail_actions
+# ---------------------------------------------------------------------------
+
+def apply_gmail_actions_node(state: InboxMindState) -> dict:
+    """
+    Labels each email with its classified intent and marks it as read.
+    Runs after human approval, before the report is written.
+    """
+    print("[apply_gmail_actions] Applying labels and marking emails as read...")
+
+    service = build_gmail_service()
+    classified = state.get("classified", [])
+
+    # Pre-create/cache all needed labels
+    label_ids: dict[str, str] = {}
+    for intent in ("has_attachment", "needs_reply", "info_only"):
+        try:
+            label_ids[intent] = ensure_label_exists(service, intent)
+        except Exception as exc:
+            return {
+                "gmail_action_results": [],
+                "errors": [f"[apply_gmail_actions] Failed to create label '{intent}': {exc}"],
+            }
+
+    results: list[GmailActionResult] = []
+    errors: list[str] = []
+
+    for item in classified:
+        email_id = item["email_id"]
+        intent = item["intent"]
+        label_id = label_ids.get(intent)
+
+        if not label_id:
+            errors.append(f"[apply_gmail_actions] No label ID for intent '{intent}' on email {email_id}")
+            continue
+
+        try:
+            label_and_mark_read(service, email_id, label_id)
+            results.append(GmailActionResult(
+                email_id=email_id,
+                label_applied=intent,
+                marked_read=True,
+            ))
+            print(f"  ✓ {email_id}: label='{intent}', marked as read")
+        except Exception as exc:
+            errors.append(f"[apply_gmail_actions] Failed on email {email_id}: {exc}")
+            results.append(GmailActionResult(
+                email_id=email_id,
+                label_applied=intent,
+                marked_read=False,
+            ))
+
+    print(f"[apply_gmail_actions] Done: {len(results)} emails processed, {len(errors)} errors")
+    return {"gmail_action_results": results, "errors": errors}

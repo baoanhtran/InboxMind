@@ -68,6 +68,13 @@ class EmailSummary(TypedDict):
     deadline: Optional[str]
 
 
+class GmailActionResult(TypedDict):
+    """Result of applying a label and marking an email as read."""
+    email_id: str
+    label_applied: str          # the label name that was applied
+    marked_read: bool           # whether mark-as-read succeeded
+
+
 class HumanDecision(TypedDict):
     """Decision recorded at the human_review checkpoint."""
     approved: bool
@@ -107,6 +114,9 @@ class InboxMindState(TypedDict):
     attachment_results: Annotated[list[AttachmentResult], operator.add]
     draft_results: Annotated[list[DraftResult], operator.add]
     summaries: Annotated[list[EmailSummary], operator.add]
+
+    # --- Gmail actions ---
+    gmail_action_results: Annotated[list[GmailActionResult], operator.add]
 
     # --- Aggregated & reviewed ---
     aggregated_output: dict[str, Any]       # merged view after aggregator
