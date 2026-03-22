@@ -8,6 +8,8 @@ token.json
 
 # Database / state
 *.db
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
 
