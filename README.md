@@ -9,7 +9,7 @@ fetch_emails → triage_classifier → [conditional routing]
     ├── attachment_processor   (PDFs, images, xlsx)
     ├── reply_drafter          (GPT-4o draft → GmailCreateDraft)
     └── summarizer             (key info + action items)
-         └──→ result_aggregator → human_review → report_writer
+         └──→ result_aggregator → human_review → apply_gmail_actions → report_writer
 ```
 
 ## Features
@@ -19,6 +19,7 @@ fetch_emails → triage_classifier → [conditional routing]
 - Extracts content from PDF, Excel, and image attachments (GPT-4o Vision)
 - Drafts replies saved to Gmail Drafts (never auto-sends)
 - Human-in-the-loop checkpoint before any action is finalised
+- Labels each email by intent and marks as read after human approval
 - Durable state via LangGraph checkpointing (survives restarts)
 - Final structured JSON + Markdown report
 

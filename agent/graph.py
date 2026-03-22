@@ -154,3 +154,8 @@ def build_graph_with_sqlite(db_path: str = "inboxmind.db") -> CompiledStateGraph
     conn = sqlite3.connect(db_path, check_same_thread=False)
     checkpointer = SqliteSaver(conn)
     return build_graph(checkpointer=checkpointer)
+
+
+# Module-level compiled graph for LangGraph Cloud / LangSmith deployment.
+# The platform injects its own checkpointer, so we compile without one here.
+graph = build_graph()

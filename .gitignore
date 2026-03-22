@@ -11,6 +11,9 @@ token.json
 *.sqlite
 *.sqlite3
 
+# LangGraph local dev runtime
+.langgraph_api/
+
 # Python bytecode
 __pycache__/
 *.py[cod]
